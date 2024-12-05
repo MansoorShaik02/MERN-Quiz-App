@@ -8,6 +8,7 @@ const QuizDetail = () => {
   const [quiz, setQuiz] = useState(null);
   const [answers, setAnswers] = useState([]);
   const [score, setScore] = useState(null);
+  const [correctAnswers, setCorrectAnswers] = useState([]);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -29,7 +30,7 @@ const QuizDetail = () => {
     fetchQuiz();
   }, [id]);
 
-  const gotToHomePage = () => {
+  const goToHomePage = () => {
     navigate("/");
   };
 
@@ -45,8 +46,8 @@ const QuizDetail = () => {
     try {
       const result = await attemptQuiz(id, { answers });
       setScore(result.score);
+      setCorrectAnswers(result.correctAnswers); // Assuming API returns correct answers
       setMessage(`You scored ${result.score} points!`);
-      // Redirect after 5 seconds
     } catch (error) {
       console.error("An error occurred while submitting the quiz:", error);
       setMessage("An error occurred while submitting the quiz.");
@@ -82,25 +83,48 @@ const QuizDetail = () => {
                     className="mr-2"
                   />
                   {option.text}
+                  {score !== null && (
+                    <span
+                      className={`ml-2 ${
+                        question.correctOption === optionIndex
+                          ? "text-green-500"
+                          : answers[qIndex]?.selectedOption === optionIndex
+                          ? "text-red-500"
+                          : ""
+                      }`}
+                    >
+                      {question.correctOption === optionIndex
+                        ? " (Correct)"
+                        : answers[qIndex]?.selectedOption === optionIndex
+                        ? " (Your choice)"
+                        : ""}
+                    </span>
+                  )}
                 </label>
               </div>
             ))}
+            {score !== null && (
+              <p className="mt-2 text-green-500">
+                Correct answer: {question.options[question.correctOption].text}
+              </p>
+            )}
           </div>
         ))}
-        <button
-          type="submit"
-          className="bg-blue-500 text-white py-2 px-4 rounded w-full"
-        >
-          Submit Quiz
-        </button>
-        {message && (
+        {score === null ? (
+          <button
+            type="submit"
+            className="bg-blue-500 text-white py-2 px-4 rounded w-full"
+          >
+            Submit Quiz
+          </button>
+        ) : (
           <>
             <div className="mt-4 p-2 bg-green-200 text-green-800 rounded">
               {message}
             </div>
             <button
               className="bg-blue-500 text-white py-2 px-4 rounded w-full mt-3"
-              onClick={() => gotToHomePage()}
+              onClick={goToHomePage}
             >
               Home Page
             </button>

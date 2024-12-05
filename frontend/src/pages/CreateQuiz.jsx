@@ -1,10 +1,12 @@
 import React, { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { createQuiz } from "../api";
 import { AuthContext } from "../context/AuthContext";
 
 const CreateQuiz = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const navigate = useNavigate();
   const [questions, setQuestions] = useState([
     {
       question: "",
@@ -56,6 +58,11 @@ const CreateQuiz = () => {
     ]);
   };
 
+  const handleRemoveQuestion = (index) => {
+    const newQuestions = questions.filter((_, i) => i !== index);
+    setQuestions(newQuestions);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -63,6 +70,7 @@ const CreateQuiz = () => {
       console.log("Sending quiz data:", quizData);
       await createQuiz(quizData);
       alert("Quiz created successfully!");
+      navigate("/");
     } catch (error) {
       console.error("Error creating quiz:", error);
     }
@@ -101,9 +109,18 @@ const CreateQuiz = () => {
         </div>
         {questions.map((q, questionIndex) => (
           <div key={questionIndex} className="mb-4">
-            <label className="block text-sm font-bold mb-2">
-              Question {questionIndex + 1}
-            </label>
+            <div className="flex justify-between items-center">
+              <label className="block text-sm font-bold mb-2">
+                Question {questionIndex + 1}
+              </label>
+              <button
+                type="button"
+                onClick={() => handleRemoveQuestion(questionIndex)}
+                className="bg-red-500 text-white py-1 px-2 rounded"
+              >
+                Remove Question
+              </button>
+            </div>
             <input
               type="text"
               value={q.question}
