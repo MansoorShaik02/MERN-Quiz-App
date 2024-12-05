@@ -17,6 +17,7 @@ const registerUser = async (req, res) => {
             token: generateToken(user._id),
         });
     } catch (error) {
+        console.log("error in authcontroller register user")
         res.status(400).json({ error: error.message });
     }
 };

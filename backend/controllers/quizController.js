@@ -1,11 +1,12 @@
 const Quiz = require('../models/Quiz');
 
 const createQuiz = async (req, res) => {
-    const { title, questions } = req.body;
+    const { title, description, questions } = req.body;
 
     try {
         const quiz = new Quiz({
             title,
+            description,
             questions,
             user: req.user._id,
         });
@@ -37,17 +38,42 @@ const getQuiz = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
-
 const attemptQuiz = async (req, res) => {
+    const { id } = req.params;
+    const { answers } = req.body;
+
     try {
-        const quiz = await Quiz.findById(req.params.id);
+        const quiz = await Quiz.findById(id);
+
         if (!quiz) {
             return res.status(404).json({ error: 'Quiz not found' });
         }
 
-        res.json({ message: 'Quiz attempted', correctAnswers: 0 });
+        let score = 0;
+
+        answers.forEach(answer => {
+            const question = quiz.questions.id(answer.questionId);
+            if (question) {
+                const correctOption = question.options.findIndex(option => option.isCorrect);
+                if (correctOption === answer.selectedOption) {
+                    score += 1;
+                }
+            }
+        });
+
+        const attempt = {
+            user: req.user._id,
+            answers,
+            score
+        };
+
+        quiz.attempts.push(attempt);
+        await quiz.save();
+
+        res.status(201).json({ score, message: 'Quiz attempted successfully' });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error(error);
+        res.status(500).json({ error: 'Server error' });
     }
 };
 
